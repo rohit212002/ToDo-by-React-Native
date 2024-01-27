@@ -6,7 +6,11 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Modal,
+  Button,
 } from "react-native";
+
+import Comment from "./Comment";
 
 const App = () => {
   const [task, setTask] = useState("");
@@ -17,6 +21,7 @@ const App = () => {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [showAddTask, setShowAddTask] = useState(true);
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(-1);
 
   const handleAddTask = () => {
     if (task) {
@@ -34,14 +39,21 @@ const App = () => {
 
   const handleEditTask = (index) => {
     const taskToEdit = tasks[index];
+    console.log(taskToEdit);
     setTask(taskToEdit);
+    // console.log(index);
+
     setEditIndex(index);
   };
 
   const handleDeleteTask = (index) => {
     const updatedTasks = [...tasks];
+    const updatedCompletedTasks = { ...completedTasks };
     updatedTasks.splice(index, 1);
+    delete updatedCompletedTasks[index];
+
     setTasks(updatedTasks);
+    setCompletedTasks(updatedCompletedTasks);
   };
 
   const toggleTaskCompletion = (index) => {
@@ -100,20 +112,36 @@ const App = () => {
     }
   };
 
+  const handleDetails = (index) => {
+
+    console.log(tasks[index]);
+    setSelectedTask(index);
+
+
+  }
+
   const renderItem = ({ item, index }) => (
-    <View style={[styles.task, completedTasks[index] && styles.completedTask]}>
-      <TouchableOpacity onPress={() => toggleTaskCompletion(index)}>
-        <Text style={styles.checkbox}>{completedTasks[index] ? "☑" : "☐"}</Text>
-      </TouchableOpacity>
-      <Text style={styles.itemList}>{item}</Text>
-      <View style={styles.taskButtons}>
-        <TouchableOpacity onPress={() => handleEditTask(index)}>
-          <Text style={styles.editButton}>Edit</Text>
+    <View style={{ borderWidth: 1, marginBottom: 10, borderBlockColor: "grey", padding: 4, borderRadius: 4, }}>
+      <View style={[styles.task, completedTasks[index] && styles.completedTask]}>
+        <TouchableOpacity onPress={() => toggleTaskCompletion(index)}>
+          <Text style={styles.checkbox}>{completedTasks[index] ? "☑" : "☐"}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDeleteTask(index)}>
-          <Text style={styles.deleteButton}>Delete</Text>
-        </TouchableOpacity>
+        <Text style={styles.itemList}>{item}</Text>
+        <View style={styles.taskButtons}>
+          <TouchableOpacity onPress={() => handleEditTask(index)}>
+            <Text style={styles.editButton}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDeleteTask(index)}>
+            <Text style={styles.deleteButton}>Delete</Text>
+          </TouchableOpacity>
+
+        </View>
       </View>
+
+      <TouchableOpacity onPress={() => handleDetails(index)} >
+        <Text style={styles.DetailsButton}>Details</Text>
+      </TouchableOpacity>
+
     </View>
   );
 
@@ -132,6 +160,15 @@ const App = () => {
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
       />
+
+      <Modal visible={selectedTask !== -1}>
+        <View style={{ paddding: 16, }}>
+          <Text>{tasks[selectedTask]}</Text>
+          <Button onPress={() => { setSelectedTask(-1) }} title="Close"></Button>
+
+          <Comment index={selectedTask} />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -197,6 +234,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   deleteButton: {
+    color: "red",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+
+  DetailsButtonButton: {
+    flex: 1,
+    direction: "column",
     color: "red",
     fontWeight: "bold",
     fontSize: 18,
